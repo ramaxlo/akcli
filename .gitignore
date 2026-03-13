@@ -1,0 +1,10 @@
+# Binaries
+ak
+akcli
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
