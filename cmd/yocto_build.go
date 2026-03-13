@@ -73,9 +73,9 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		allArgs = append(allArgs, args...)
 	}
 
-	// Source oe-init-build-env then run bitbake in the same shell
-	shellCmd := fmt.Sprintf("source %q %s && bitbake %s",
-		absScript, buildDir, strings.Join(allArgs, " "))
+	// Source oe-init-build-env then run bitbake with MACHINE set
+	shellCmd := fmt.Sprintf("source %q %s && MACHINE=%s bitbake %s",
+		absScript, buildDir, cfg.Build.Machine, strings.Join(allArgs, " "))
 
 	if dryRun {
 		fmt.Printf("[dryrun] Would run: bash -c '%s'\n", shellCmd)
