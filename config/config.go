@@ -19,6 +19,8 @@ type BuildConfig struct {
 	Target       string `toml:"target"`
 	BuildDir     string `toml:"build_dir"`
 	TemplateConf string `toml:"template_conf"`
+	DlDir        string `toml:"dl_dir"`
+	SstateDir    string `toml:"sstate_dir"`
 }
 
 type Config struct {

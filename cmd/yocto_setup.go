@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/ramaxlo/akcli/config"
 	"github.com/spf13/cobra"
@@ -50,8 +51,33 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	}
 	shellCmd += fmt.Sprintf("source %q %s", absScript, buildDir)
 
+	// Resolve DL_DIR and SSTATE_DIR (default to project root)
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	dlDir := filepath.Join(cwd, "downloads")
+	if cfg.Build.DlDir != "" {
+		dlDir, err = filepath.Abs(cfg.Build.DlDir)
+		if err != nil {
+			return fmt.Errorf("failed to resolve dl_dir path: %w", err)
+		}
+	}
+
+	sstateDir := filepath.Join(cwd, "sstate-cache")
+	if cfg.Build.SstateDir != "" {
+		sstateDir, err = filepath.Abs(cfg.Build.SstateDir)
+		if err != nil {
+			return fmt.Errorf("failed to resolve sstate_dir path: %w", err)
+		}
+	}
+
 	if dryRun {
 		fmt.Printf("[dryrun] Would run: bash -c '%s'\n", shellCmd)
+		fmt.Printf("[dryrun] Would append to %s/conf/local.conf:\n", buildDir)
+		fmt.Printf("[dryrun]   DL_DIR = %q\n", dlDir)
+		fmt.Printf("[dryrun]   SSTATE_DIR = %q\n", sstateDir)
 		return nil
 	}
 
@@ -67,7 +93,34 @@ func runSetup(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to source oe-init-build-env: %w", err)
 	}
 
+	// Append DL_DIR and SSTATE_DIR to local.conf
+	localConf := filepath.Join(buildDir, "conf", "local.conf")
+	if err := appendLocalConf(localConf, dlDir, sstateDir); err != nil {
+		return err
+	}
+
 	fmt.Println("Setup complete. Run 'ak yocto build' next.")
+	return nil
+}
+
+func appendLocalConf(path, dlDir, sstateDir string) error {
+	var b strings.Builder
+	b.WriteString("\n# Added by akcli\n")
+	fmt.Fprintf(&b, "DL_DIR = %q\n", dlDir)
+	fmt.Fprintf(&b, "SSTATE_DIR = %q\n", sstateDir)
+
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open local.conf: %w", err)
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString(b.String()); err != nil {
+		return fmt.Errorf("failed to append to local.conf: %w", err)
+	}
+
+	fmt.Printf("DL_DIR = %q\n", dlDir)
+	fmt.Printf("SSTATE_DIR = %q\n", sstateDir)
 	return nil
 }
 
