@@ -15,7 +15,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "ak.toml", "path to config file")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "ak.toml", "path to config file")
 }
 
 func Execute() {
