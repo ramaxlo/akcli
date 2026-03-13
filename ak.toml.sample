@@ -1,0 +1,12 @@
+[manifest]
+url = "https://github.com/example/yocto-manifest.git"
+branch = "main"
+
+[build]
+distro = "poky"
+machine = "qemux86-64"
+target = "core-image-minimal"
+# build_dir = "build"
+# template_conf = "meta-custom/conf/templates/default"
+# dl_dir = "/shared/downloads"
+# sstate_dir = "/shared/sstate-cache"
