@@ -24,6 +24,11 @@ func init() {
 }
 
 func runSync(cmd *cobra.Command, args []string) error {
+	if dryRun {
+		fmt.Printf("[dryrun] Would run: repo sync -j %d\n", syncJobs)
+		return nil
+	}
+
 	repoPath, err := findRepo()
 	if err != nil {
 		return err

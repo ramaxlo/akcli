@@ -18,12 +18,25 @@ var buildCmd = &cobra.Command{
 }
 
 func init() {
-	// Allow passing unknown flags through to bitbake
 	buildCmd.DisableFlagParsing = true
 	yoctoCmd.AddCommand(buildCmd)
 }
 
 func runBuild(cmd *cobra.Command, args []string) error {
+	// Since flag parsing is disabled, manually handle our own flags
+	var bbArgs []string
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--dryrun":
+			dryRun = true
+		case "--help", "-h":
+			return cmd.Help()
+		default:
+			bbArgs = append(bbArgs, args[i])
+		}
+	}
+	args = bbArgs
+
 	cfg, err := config.LoadCache()
 	if err != nil {
 		return err
@@ -44,14 +57,19 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	target := cfg.Build.Target
 
 	// Build the bitbake command with optional extra flags
-	bbArgs := []string{target}
+	allArgs := []string{target}
 	if len(args) > 0 {
-		bbArgs = append(bbArgs, args...)
+		allArgs = append(allArgs, args...)
 	}
 
 	// Source oe-init-build-env then run bitbake in the same shell
 	shellCmd := fmt.Sprintf("source %q %s && bitbake %s",
-		absScript, buildDir, strings.Join(bbArgs, " "))
+		absScript, buildDir, strings.Join(allArgs, " "))
+
+	if dryRun {
+		fmt.Printf("[dryrun] Would run: bash -c '%s'\n", shellCmd)
+		return nil
+	}
 
 	fmt.Printf("Building target '%s'...\n", target)
 	if len(args) > 0 {

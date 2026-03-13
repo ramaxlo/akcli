@@ -8,6 +8,7 @@ import (
 )
 
 var cfgFile string
+var dryRun bool
 
 var rootCmd = &cobra.Command{
 	Use:   "ak",
@@ -16,6 +17,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "ak.toml", "path to config file")
+	rootCmd.PersistentFlags().BoolVar(&dryRun, "dryrun", false, "display commands without executing them")
 }
 
 func Execute() {

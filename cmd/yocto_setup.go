@@ -50,6 +50,11 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	}
 	shellCmd += fmt.Sprintf("source %q %s", absScript, buildDir)
 
+	if dryRun {
+		fmt.Printf("[dryrun] Would run: bash -c '%s'\n", shellCmd)
+		return nil
+	}
+
 	fmt.Printf("Sourcing oe-init-build-env with build dir '%s'...\n", buildDir)
 	if cfg.Build.TemplateConf != "" {
 		fmt.Printf("TEMPLATECONF=%s\n", cfg.Build.TemplateConf)

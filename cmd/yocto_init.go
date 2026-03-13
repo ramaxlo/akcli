@@ -37,6 +37,13 @@ func runInit(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Machine:      %s\n", cfg.Build.Machine)
 	fmt.Printf("Target:       %s\n", cfg.Build.Target)
 
+	if dryRun {
+		fmt.Println("[dryrun] Would ensure repo tool is available")
+		fmt.Printf("[dryrun] Would run: repo init -u %s -b %s\n", cfg.Manifest.URL, cfg.Manifest.Branch)
+		fmt.Println("[dryrun] Would cache config to .ak/config.cache.toml")
+		return nil
+	}
+
 	repoPath, err := ensureRepoTool()
 	if err != nil {
 		return fmt.Errorf("failed to set up repo tool: %w", err)
