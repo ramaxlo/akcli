@@ -24,11 +24,19 @@ func init() {
 
 func runBuild(cmd *cobra.Command, args []string) error {
 	// Since flag parsing is disabled, manually handle our own flags
+	var targetOverride string
 	var bbArgs []string
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--dryrun":
 			dryRun = true
+		case "--target":
+			if i+1 < len(args) {
+				i++
+				targetOverride = args[i]
+			} else {
+				return fmt.Errorf("--target requires a value")
+			}
 		case "--help", "-h":
 			return cmd.Help()
 		default:
@@ -55,6 +63,9 @@ func runBuild(cmd *cobra.Command, args []string) error {
 
 	buildDir := cfg.Build.BuildDir
 	target := cfg.Build.Target
+	if targetOverride != "" {
+		target = targetOverride
+	}
 
 	// Build the bitbake command with optional extra flags
 	allArgs := []string{target}
