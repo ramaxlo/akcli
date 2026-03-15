@@ -2,6 +2,14 @@
 
 A CLI tool for automating Yocto build environment setup and image builds.
 
+## Requirements
+
+- **Go** 1.25 or later
+- **make**
+- **Python 3** (for running Google repo tool)
+- **GNU tar** (for `ak yocto pack`)
+- **bash** (for sourcing `oe-init-build-env`)
+
 ## Building
 
 ```sh
@@ -14,6 +22,20 @@ To remove the built binary:
 
 ```sh
 make clean
+```
+
+## Installation
+
+Copy the binary to a directory in your `PATH`, for example:
+
+```sh
+cp bin/ak ~/.local/bin/
+```
+
+Or system-wide:
+
+```sh
+sudo cp bin/ak /usr/local/bin/
 ```
 
 ## Configuration
