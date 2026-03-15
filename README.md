@@ -40,7 +40,7 @@ target   = "core-image-minimal"
 
 # Path to a custom template directory for oe-init-build-env.
 # Sets the TEMPLATECONF environment variable before sourcing the init script.
-# template_conf = "meta-custom/conf/templates/default"
+template_conf = "meta-custom/conf/templates/default"
 
 # Directories for download cache and shared state cache.
 # Defaults to "downloads/" and "sstate-cache/" at the project root.
@@ -56,7 +56,7 @@ target   = "core-image-minimal"
 | `build.machine`        | Yes      | Target machine (e.g. `qemux86-64`)               |
 | `build.target`         | Yes      | Default bitbake build target                     |
 | `build.build_dir`      | No       | Build directory name (default: `build`)          |
-| `build.template_conf`  | No       | Path to conf template dir for `TEMPLATECONF`     |
+| `build.template_conf`  | Yes      | Path to conf template dir for `TEMPLATECONF`     |
 | `build.dl_dir`         | No       | Download cache directory (default: `downloads/`) |
 | `build.sstate_dir`     | No       | Shared state cache dir (default: `sstate-cache/`)|
 
@@ -116,9 +116,9 @@ ak yocto sync -j 8
 Creates the Yocto build directory by sourcing `oe-init-build-env`. The script is
 located automatically by scanning for it under the current directory.
 
-If `template_conf` is set in the config, `TEMPLATECONF` is exported before
-sourcing so the init script uses the specified template directory to generate
-`local.conf` and `bblayers.conf`.
+`template_conf` must be set in the config. `TEMPLATECONF` is exported to that
+value before sourcing so the init script uses the specified template directory
+to generate `local.conf` and `bblayers.conf`.
 
 After the build directory is created, `DL_DIR` and `SSTATE_DIR` are appended to
 `local.conf` to place the download and shared state caches outside the build

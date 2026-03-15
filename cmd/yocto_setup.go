@@ -40,16 +40,17 @@ func runSetup(cmd *cobra.Command, args []string) error {
 
 	buildDir := cfg.Build.BuildDir
 
-	// Build the shell command: optionally export TEMPLATECONF, then source oe-init-build-env
-	shellCmd := ""
-	if cfg.Build.TemplateConf != "" {
-		absTemplate, err := filepath.Abs(cfg.Build.TemplateConf)
-		if err != nil {
-			return fmt.Errorf("failed to resolve template_conf path: %w", err)
-		}
-		shellCmd = fmt.Sprintf("export TEMPLATECONF=%q && ", absTemplate)
+	if cfg.Build.TemplateConf == "" {
+		return fmt.Errorf("template_conf is required in config")
 	}
-	shellCmd += fmt.Sprintf("source %q %s", absScript, buildDir)
+
+	absTemplate, err := filepath.Abs(cfg.Build.TemplateConf)
+	if err != nil {
+		return fmt.Errorf("failed to resolve template_conf path: %w", err)
+	}
+
+	// Build the shell command: export TEMPLATECONF, then source oe-init-build-env
+	shellCmd := fmt.Sprintf("export TEMPLATECONF=%q && source %q %s", absTemplate, absScript, buildDir)
 
 	// Resolve DL_DIR and SSTATE_DIR (default to project root)
 	cwd, err := os.Getwd()
@@ -82,9 +83,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Sourcing oe-init-build-env with build dir '%s'...\n", buildDir)
-	if cfg.Build.TemplateConf != "" {
-		fmt.Printf("TEMPLATECONF=%s\n", cfg.Build.TemplateConf)
-	}
+	fmt.Printf("TEMPLATECONF=%s\n", cfg.Build.TemplateConf)
 
 	bash := exec.Command("bash", "-c", shellCmd)
 	bash.Stdout = os.Stdout
