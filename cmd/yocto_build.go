@@ -38,7 +38,13 @@ func runBuild(cmd *cobra.Command, args []string) error {
 				return fmt.Errorf("--target requires a value")
 			}
 		case "--help", "-h":
-			return cmd.Help()
+			fmt.Printf("Usage:\n  %s\n\n", cmd.UseLine())
+			fmt.Printf("Flags:\n")
+			fmt.Printf("  --target string   override the default build target from config\n")
+			fmt.Printf("  --dryrun          display commands without executing them\n")
+			fmt.Printf("  -h, --help        help for build\n")
+			fmt.Printf("\nExtra bitbake flags are passed through directly to bitbake.\n")
+			return nil
 		default:
 			bbArgs = append(bbArgs, args[i])
 		}
