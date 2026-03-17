@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build release binaries
+        run: |
+          PKG=github.com/ramaxlo/akcli/cmd
+          COMMIT=$(git rev-parse --short HEAD)
+          BUILD_DATE=$(date -u +%Y-%m-%d)
+          VERSION=${GITHUB_REF_NAME}
+          LDFLAGS="-X '${PKG}.commit=${COMMIT}' -X '${PKG}.buildDate=${BUILD_DATE}' -X '${PKG}.version=${VERSION}'"
+          GOOS=linux GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o bin/ak-amd64 .
+          GOOS=linux GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o bin/ak-arm64 .
+
+      - name: Create release archives
+        run: |
+          VERSION=${GITHUB_REF_NAME}
+          tar -czf ak-${VERSION}-linux-amd64.tar.gz -C bin --transform='flags=rsh;s,ak-amd64,ak,' ak-amd64
+          tar -czf ak-${VERSION}-linux-arm64.tar.gz -C bin --transform='flags=rsh;s,ak-arm64,ak,' ak-arm64
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ak-*.tar.gz
+          generate_release_notes: true
