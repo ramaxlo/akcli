@@ -50,6 +50,7 @@ func runPack(cmd *cobra.Command, args []string) error {
 	// Use --transform with flags=rSh to only rename regular files, symlinks
 	// (path entries), and hard links, but NOT symlink targets
 	transform := fmt.Sprintf("--transform=flags=rsh;s,^\\.,%s,", machine)
+	fmt.Printf("Running: tar -czf %s %s -C %s .\n", absOutput, transform, imageDir)
 	tarCmd := exec.Command("tar", "-czf", absOutput, transform, "-C", imageDir, ".")
 	tarCmd.Stdout = os.Stdout
 	tarCmd.Stderr = os.Stderr

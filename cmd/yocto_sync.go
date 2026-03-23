@@ -35,6 +35,7 @@ func runSync(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Syncing with %d jobs...\n", syncJobs)
+	fmt.Printf("Running: %s sync -j %d\n", repoPath, syncJobs)
 
 	repoSync := exec.Command(repoPath, "sync", "-j", strconv.Itoa(syncJobs))
 	repoSync.Stdout = os.Stdout

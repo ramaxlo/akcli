@@ -92,6 +92,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		fmt.Printf("Extra bitbake flags: %s\n", strings.Join(args, " "))
 	}
+	fmt.Printf("Running: bash -c '%s'\n", shellCmd)
 
 	bash := exec.Command("bash", "-c", shellCmd)
 	bash.Stdout = os.Stdout

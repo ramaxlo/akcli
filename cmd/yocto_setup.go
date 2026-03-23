@@ -84,6 +84,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Sourcing oe-init-build-env with build dir '%s'...\n", buildDir)
 	fmt.Printf("TEMPLATECONF=%s\n", cfg.Build.TemplateConf)
+	fmt.Printf("Running: bash -c '%s'\n", shellCmd)
 
 	bash := exec.Command("bash", "-c", shellCmd)
 	bash.Stdout = os.Stdout

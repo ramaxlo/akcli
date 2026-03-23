@@ -60,6 +60,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Repo tool:    %s\n", repoPath)
 
 	fmt.Println("Initializing repo...")
+	fmt.Printf("Running: %s init -u %s -b %s\n", repoPath, cfg.Manifest.URL, revision)
 	repoInit := exec.Command(repoPath, "init",
 		"-u", cfg.Manifest.URL,
 		"-b", revision,
