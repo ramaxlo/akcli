@@ -14,6 +14,7 @@
 - **`DL_DIR` and `SSTATE_DIR`** default to `downloads/` and `sstate-cache/` at the project root (siblings to the build directory), and are appended to `local.conf` after `oe-init-build-env` creates it.
 - **`MACHINE`** is set as an inline env variable when invoking `bitbake` (e.g. `MACHINE=qemux86-64 bitbake ...`), not only via `local.conf`.
 - **Version**: `v1.0.0`, injected at build time via `-ldflags`.
+- **`branch` and `tag` are mutually exclusive** in `[manifest]`. `config.Load()` returns an error if both are set. When `tag` is set, it is passed to `repo init` as `refs/tags/<tag>` via the `-b` flag.
 
 ## Patterns
 
