@@ -11,6 +11,7 @@ import (
 type ManifestConfig struct {
 	URL    string `toml:"url"`
 	Branch string `toml:"branch"`
+	Tag    string `toml:"tag"`
 }
 
 type BuildConfig struct {
@@ -39,6 +40,10 @@ func Load(path string) (*Config, error) {
 
 	if cfg.Build.BuildDir == "" {
 		cfg.Build.BuildDir = "build"
+	}
+
+	if cfg.Manifest.Branch != "" && cfg.Manifest.Tag != "" {
+		return nil, fmt.Errorf("manifest: 'branch' and 'tag' are mutually exclusive")
 	}
 
 	return &cfg, nil

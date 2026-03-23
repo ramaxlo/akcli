@@ -32,14 +32,23 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Manifest URL: %s\n", cfg.Manifest.URL)
-	fmt.Printf("Branch:       %s\n", cfg.Manifest.Branch)
+	if cfg.Manifest.Tag != "" {
+		fmt.Printf("Tag:          %s\n", cfg.Manifest.Tag)
+	} else {
+		fmt.Printf("Branch:       %s\n", cfg.Manifest.Branch)
+	}
 	fmt.Printf("Distro:       %s\n", cfg.Build.Distro)
 	fmt.Printf("Machine:      %s\n", cfg.Build.Machine)
 	fmt.Printf("Target:       %s\n", cfg.Build.Target)
 
+	revision := cfg.Manifest.Branch
+	if cfg.Manifest.Tag != "" {
+		revision = "refs/tags/" + cfg.Manifest.Tag
+	}
+
 	if dryRun {
 		fmt.Println("[dryrun] Would ensure repo tool is available")
-		fmt.Printf("[dryrun] Would run: repo init -u %s -b %s\n", cfg.Manifest.URL, cfg.Manifest.Branch)
+		fmt.Printf("[dryrun] Would run: repo init -u %s -b %s\n", cfg.Manifest.URL, revision)
 		fmt.Println("[dryrun] Would cache config to .ak/config.cache.toml")
 		return nil
 	}
@@ -53,7 +62,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	fmt.Println("Initializing repo...")
 	repoInit := exec.Command(repoPath, "init",
 		"-u", cfg.Manifest.URL,
-		"-b", cfg.Manifest.Branch,
+		"-b", revision,
 	)
 	repoInit.Stdout = os.Stdout
 	repoInit.Stderr = os.Stderr
