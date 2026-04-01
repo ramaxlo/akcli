@@ -58,6 +58,12 @@ func runKernelBuild(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		fmt.Printf("==> Remove old build folder: %s\n", outDir)
+		// Remove old build folder
+		if err := os.RemoveAll(outDir); err != nil {
+			return fmt.Errorf("failed to remove old build folder: %w", err)
+		}
+
 		fmt.Printf("==> Defconfig: %s\n", d.Name)
 
 		if err := os.MkdirAll(outDir, 0755); err != nil {
