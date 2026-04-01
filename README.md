@@ -9,6 +9,7 @@ A CLI tool for automating Yocto build environment setup and image builds.
 - **Python 3** (for running Google repo tool)
 - **GNU tar** (for `ak yocto pack`)
 - **bash** (for sourcing `oe-init-build-env`)
+- **Cross-compilation toolchain** (for `ak kernel build`, e.g. `aarch64-linux-gnu-gcc`)
 
 ## Building
 
@@ -183,3 +184,94 @@ ak yocto pack
 ```
 
 The output file is written to the current directory as `<machine>.tar.gz`.
+
+---
+
+## `ak kernel` — Linux kernel builds
+
+The `kernel` subcommand group manages fetching and building a Linux kernel from one or more git remotes, with support for multiple defconfigs built in separate output directories.
+
+### Workflow
+
+```
+ak kernel init → ak kernel build
+```
+
+### Kernel config file format
+
+Kernel configuration lives in `[kernel]`, `[[kernel.remote]]`, and `[[kernel.defconfig]]` sections. These can coexist with `[manifest]` and `[build]` in the same `ak.toml`.
+
+```toml
+[kernel]
+src_dir          = "kernel-src"
+arch             = "arm64"
+toolchain_prefix = "aarch64-linux-gnu-"
+targets          = ["Image", "dtbs", "modules"]
+
+[[kernel.remote]]
+name     = "upstream"
+url      = "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
+branch   = "master"
+
+[[kernel.remote]]
+name     = "vendor"
+url     = "https://github.com/example/vendor-kernel.git"
+branch   = "vendor/6.6"
+checkout = true
+
+[[kernel.defconfig]]
+name   = "board-a"
+config = "configs/board-a.config"
+
+[[kernel.defconfig]]
+name   = "board-b"
+config = "configs/board-b.config"
+```
+
+| Field                         | Required | Description                                                     |
+|-------------------------------|----------|-----------------------------------------------------------------|
+| `kernel.src_dir`              | Yes      | Directory where the kernel git repo is created                  |
+| `kernel.arch`                 | Yes      | Kernel architecture (e.g. `arm64`, `x86_64`)                   |
+| `kernel.toolchain_prefix`     | Yes      | Cross-compiler prefix (e.g. `aarch64-linux-gnu-`)               |
+| `kernel.targets`              | Yes      | List of make targets (e.g. `["Image", "dtbs", "modules"]`)      |
+| `kernel.remote[].name`        | Yes      | Name for the git remote                                         |
+| `kernel.remote[].url`         | Yes      | URL of the remote repository                                    |
+| `kernel.remote[].branch`      | Yes      | Branch to fetch                                                 |
+| `kernel.remote[].checkout`    | No       | If `true`, this remote/branch is checked out (last one wins)    |
+| `kernel.defconfig[].name`     | Yes      | Name used as the output directory under `kbuild/`               |
+| `kernel.defconfig[].config`   | Yes      | Path to the kernel `.config` file to use for this build         |
+
+---
+
+### `ak kernel init`
+
+Creates a local git repo at `src_dir`, adds each `[[kernel.remote]]` as a named remote, fetches all of them, and checks out the remote/branch marked `checkout = true` into detached HEAD. Verifies the cross-compiler is available in `PATH`. Caches the kernel config to `.ak/kernel.cache.toml`.
+
+```sh
+ak kernel init
+ak -c custom.toml kernel init
+```
+
+Re-running `ak kernel init` on an existing `src_dir` will fail at `git remote add`. Delete `src_dir` and retry.
+
+---
+
+### `ak kernel build`
+
+Loads the cached kernel config from `.ak/kernel.cache.toml` (written by `ak kernel init`) and builds the kernel for each `[[kernel.defconfig]]` entry. For each defconfig:
+
+1. Creates a fresh output directory at `kbuild/<name>/`.
+2. Copies the specified `.config` file into the output directory.
+3. Runs `make olddefconfig` to normalize the config.
+4. Runs `make` with the configured targets.
+
+Build artifacts for each defconfig are kept separate under `kbuild/<name>/`.
+
+```sh
+ak kernel build
+ak kernel build -j 16
+```
+
+| Flag         | Short | Description                                           |
+|--------------|-------|-------------------------------------------------------|
+| `--jobs <n>` | `-j`  | Number of parallel make jobs (default: number of CPUs)|
