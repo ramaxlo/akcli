@@ -83,9 +83,11 @@ func runKernelBuild(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("olddefconfig failed for %s: %w", d.Name, err)
 		}
 
-		buildTargets := append([]string{"-j" + jobs}, k.Targets...)
-		if err := runMake(k.SrcDir, k.Arch, k.ToolchainPrefix, outDir, buildTargets...); err != nil {
-			return fmt.Errorf("build failed for %s: %w", d.Name, err)
+		for _, target := range k.Targets {
+			buildTargets := append([]string{"-j" + jobs}, target)
+			if err := runMake(k.SrcDir, k.Arch, k.ToolchainPrefix, outDir, buildTargets...); err != nil {
+				return fmt.Errorf("build failed for %s: %w", d.Name, err)
+			}
 		}
 	}
 
