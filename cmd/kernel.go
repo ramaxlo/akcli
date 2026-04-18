@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -11,6 +12,7 @@ import (
 )
 
 var kernelStartTime time.Time
+var kernelLogWriter *timestampWriter
 
 var kernelCmd = &cobra.Command{
 	Use:   "kernel",
@@ -28,9 +30,17 @@ func init() {
 }
 
 func runCmd(name string, args ...string) error {
-	fmt.Printf("Running: %s %s\n", name, strings.Join(args, " "))
+	msg := fmt.Sprintf("Running: %s %s\n", name, strings.Join(args, " "))
+	fmt.Print(msg)
+
 	c := exec.Command(name, args...)
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
+	if kernelLogWriter != nil {
+		kernelLogWriter.Write([]byte(msg))
+		c.Stdout = io.MultiWriter(os.Stdout, kernelLogWriter)
+		c.Stderr = io.MultiWriter(os.Stderr, kernelLogWriter)
+	} else {
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+	}
 	return c.Run()
 }

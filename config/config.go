@@ -22,6 +22,7 @@ type BuildConfig struct {
 	TemplateConf string `toml:"template_conf"`
 	DlDir        string `toml:"dl_dir"`
 	SstateDir    string `toml:"sstate_dir"`
+	BuildLog     string `toml:"build_log"`
 }
 
 type KernelRemote struct {
@@ -41,6 +42,7 @@ type KernelConfig struct {
 	Arch            string            `toml:"arch"`
 	ToolchainPrefix string            `toml:"toolchain_prefix"`
 	Targets         []string          `toml:"targets"`
+	BuildLog        string            `toml:"build_log"`
 	Remotes         []KernelRemote    `toml:"remote"`
 	Defconfigs      []KernelDefconfig `toml:"defconfig"`
 }

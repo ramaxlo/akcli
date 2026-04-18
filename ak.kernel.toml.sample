@@ -3,6 +3,7 @@ src_dir = "kernel"
 arch = "arm64"
 toolchain_prefix = "aarch64-linux-gnu-"
 targets = ["Image", "dtbs", "modules"]
+# build_log = "kernel-build.log"
 
 [[kernel.remote]]
 name = "upstream"

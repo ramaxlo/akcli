@@ -26,6 +26,14 @@ func init() {
 	kernelCmd.AddCommand(kernelBuildCmd)
 }
 
+func logPrintf(format string, a ...any) {
+	msg := fmt.Sprintf(format, a...)
+	fmt.Print(msg)
+	if kernelLogWriter != nil {
+		kernelLogWriter.Write([]byte(msg))
+	}
+}
+
 func runKernelBuild(cmd *cobra.Command, args []string) error {
 	cfg, err := config.LoadKernelCache()
 	if err != nil {
@@ -33,6 +41,21 @@ func runKernelBuild(cmd *cobra.Command, args []string) error {
 	}
 
 	k := cfg.Kernel
+
+	if k.BuildLog != "" && !dryRun {
+		logFile, err := os.Create(k.BuildLog)
+		if err != nil {
+			return fmt.Errorf("failed to create build log %s: %w", k.BuildLog, err)
+		}
+		defer logFile.Close()
+
+		kernelLogWriter = &timestampWriter{w: logFile}
+		defer func() {
+			kernelLogWriter.Flush()
+			kernelLogWriter = nil
+		}()
+		fmt.Printf("Logging to: %s\n", k.BuildLog)
+	}
 
 	gccBinary := k.ToolchainPrefix + "gcc"
 	if _, err := exec.LookPath(gccBinary); err != nil {
@@ -58,13 +81,13 @@ func runKernelBuild(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		fmt.Printf("==> Remove old build folder: %s\n", outDir)
+		logPrintf("==> Remove old build folder: %s\n", outDir)
 		// Remove old build folder
 		if err := os.RemoveAll(outDir); err != nil {
 			return fmt.Errorf("failed to remove old build folder: %w", err)
 		}
 
-		fmt.Printf("==> Defconfig: %s\n", d.Name)
+		logPrintf("==> Defconfig: %s\n", d.Name)
 
 		if err := os.MkdirAll(outDir, 0755); err != nil {
 			return fmt.Errorf("failed to create output dir %s: %w", outDir, err)
@@ -77,7 +100,7 @@ func runKernelBuild(cmd *cobra.Command, args []string) error {
 		if err := os.WriteFile(dotConfig, data, 0644); err != nil {
 			return fmt.Errorf("failed to write .config for %s: %w", d.Name, err)
 		}
-		fmt.Printf("Copied %s -> %s\n", d.Config, dotConfig)
+		logPrintf("Copied %s -> %s\n", d.Config, dotConfig)
 
 		if err := runMake(k.SrcDir, k.Arch, k.ToolchainPrefix, outDir, "olddefconfig"); err != nil {
 			return fmt.Errorf("olddefconfig failed for %s: %w", d.Name, err)
@@ -92,7 +115,7 @@ func runKernelBuild(cmd *cobra.Command, args []string) error {
 	}
 
 	if !dryRun {
-		fmt.Println("Kernel build complete.")
+		logPrintf("Kernel build complete.\n")
 	}
 	return nil
 }

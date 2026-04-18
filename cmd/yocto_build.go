@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -94,9 +95,27 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Printf("Running: bash -c '%s'\n", shellCmd)
 
+	var stdout io.Writer = os.Stdout
+	var stderr io.Writer = os.Stderr
+
+	if cfg.Build.BuildLog != "" {
+		logFile, err := os.Create(cfg.Build.BuildLog)
+		if err != nil {
+			return fmt.Errorf("failed to create build log %s: %w", cfg.Build.BuildLog, err)
+		}
+		defer logFile.Close()
+
+		tsw := &timestampWriter{w: logFile}
+		defer tsw.Flush()
+
+		stdout = io.MultiWriter(os.Stdout, tsw)
+		stderr = io.MultiWriter(os.Stderr, tsw)
+		fmt.Printf("Logging to: %s\n", cfg.Build.BuildLog)
+	}
+
 	bash := exec.Command("bash", "-c", shellCmd)
-	bash.Stdout = os.Stdout
-	bash.Stderr = os.Stderr
+	bash.Stdout = stdout
+	bash.Stderr = stderr
 	if err := bash.Run(); err != nil {
 		return fmt.Errorf("bitbake build failed: %w", err)
 	}
