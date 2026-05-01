@@ -13,9 +13,10 @@ import (
 )
 
 var buildCmd = &cobra.Command{
-	Use:   "build [extra bitbake flags...]",
-	Short: "Source oe-init-build-env and run bitbake to build the image",
-	RunE:  runBuild,
+	Use:          "build [extra bitbake flags...]",
+	Short:        "Source oe-init-build-env and run bitbake to build the image",
+	RunE:         runBuild,
+	SilenceUsage: true,
 }
 
 func init() {
