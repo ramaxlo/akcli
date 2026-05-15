@@ -14,6 +14,7 @@ import (
 )
 
 var buildJobs int
+var buildSet string
 
 var kernelBuildCmd = &cobra.Command{
 	Use:   "build",
@@ -23,6 +24,7 @@ var kernelBuildCmd = &cobra.Command{
 
 func init() {
 	kernelBuildCmd.Flags().IntVarP(&buildJobs, "jobs", "j", runtime.NumCPU(), "number of parallel jobs for make")
+	kernelBuildCmd.Flags().StringVar(&buildSet, "set", "", "only build defconfigs whose 'set' attribute matches this value (default: all)")
 	kernelCmd.AddCommand(kernelBuildCmd)
 }
 
@@ -64,7 +66,21 @@ func runKernelBuild(cmd *cobra.Command, args []string) error {
 
 	jobs := strconv.Itoa(buildJobs)
 
-	for _, d := range k.Defconfigs {
+	defconfigs := k.Defconfigs
+	if buildSet != "" {
+		var filtered []config.KernelDefconfig
+		for _, d := range k.Defconfigs {
+			if d.Set == buildSet {
+				filtered = append(filtered, d)
+			}
+		}
+		if len(filtered) == 0 {
+			return fmt.Errorf("no defconfigs match set %q", buildSet)
+		}
+		defconfigs = filtered
+	}
+
+	for _, d := range defconfigs {
 		outDir, err := filepath.Abs(filepath.Join("kbuild", d.Name))
 		if err != nil {
 			return fmt.Errorf("failed to resolve output dir for %s: %w", d.Name, err)

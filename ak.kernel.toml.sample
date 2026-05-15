@@ -20,7 +20,11 @@ checkout = true
 [[kernel.defconfig]]
 name = "my_board"
 config = "configs/my_board.config"
+# Optional: group defconfigs into named sets. 'ak kernel build --set <name>'
+# will build only entries whose 'set' matches. If omitted, all are built.
+# set = "release"
 
 # [[kernel.defconfig]]
 # name = "another_board"
 # config = "configs/another_board.config"
+# set = "release"

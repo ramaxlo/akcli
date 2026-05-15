@@ -222,10 +222,12 @@ checkout = true
 [[kernel.defconfig]]
 name   = "board-a"
 config = "configs/board-a.config"
+set    = "release"
 
 [[kernel.defconfig]]
 name   = "board-b"
 config = "configs/board-b.config"
+set    = "release"
 ```
 
 | Field                         | Required | Description                                                     |
@@ -240,6 +242,7 @@ config = "configs/board-b.config"
 | `kernel.remote[].checkout`    | No       | If `true`, this remote/branch is checked out (last one wins)    |
 | `kernel.defconfig[].name`     | Yes      | Name used as the output directory under `kbuild/`               |
 | `kernel.defconfig[].config`   | Yes      | Path to the kernel `.config` file to use for this build         |
+| `kernel.defconfig[].set`      | No       | Group name; selected via `ak kernel build --set <name>`         |
 
 ---
 
@@ -267,11 +270,15 @@ Loads the cached kernel config from `.ak/kernel.cache.toml` (written by `ak kern
 
 Build artifacts for each defconfig are kept separate under `kbuild/<name>/`.
 
+By default every `[[kernel.defconfig]]` entry is built. Use `--set <name>` to build only the entries whose `set` attribute matches.
+
 ```sh
 ak kernel build
 ak kernel build -j 16
+ak kernel build --set release
 ```
 
-| Flag         | Short | Description                                           |
-|--------------|-------|-------------------------------------------------------|
-| `--jobs <n>` | `-j`  | Number of parallel make jobs (default: number of CPUs)|
+| Flag             | Short | Description                                                       |
+|------------------|-------|-------------------------------------------------------------------|
+| `--jobs <n>`     | `-j`  | Number of parallel make jobs (default: number of CPUs)            |
+| `--set <name>`   |       | Only build defconfigs whose `set` matches (default: build all)    |

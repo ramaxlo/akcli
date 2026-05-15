@@ -35,6 +35,7 @@ type KernelRemote struct {
 type KernelDefconfig struct {
 	Name   string `toml:"name"`
 	Config string `toml:"config"`
+	Set    string `toml:"set"`
 }
 
 type KernelConfig struct {
