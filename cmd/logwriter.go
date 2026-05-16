@@ -3,15 +3,19 @@ package cmd
 import (
 	"bytes"
 	"io"
+	"sync"
 	"time"
 )
 
 type timestampWriter struct {
 	w   io.Writer
+	mu  sync.Mutex
 	buf []byte
 }
 
 func (tw *timestampWriter) Write(p []byte) (int, error) {
+	tw.mu.Lock()
+	defer tw.mu.Unlock()
 	tw.buf = append(tw.buf, p...)
 	for {
 		idx := bytes.IndexByte(tw.buf, '\n')
@@ -32,6 +36,8 @@ func (tw *timestampWriter) Write(p []byte) (int, error) {
 }
 
 func (tw *timestampWriter) Flush() error {
+	tw.mu.Lock()
+	defer tw.mu.Unlock()
 	if len(tw.buf) > 0 {
 		ts := time.Now().Format("[15:04:05.000] ")
 		if _, err := tw.w.Write([]byte(ts)); err != nil {
